@@ -1,15 +1,184 @@
 name: UnlimitedMagicalBook
 author: '１５４１２'
 main: org.c15412.Plugin3.MainClass
-version: 'test.000.0211'
+version: 'test.000.0210'
 api-version: '1.16'
 
 permissions:
-  UMB.*:
+  Get-M.*:
     children:
-      UMB.USE: true
-  UMB.USE:
-    description: '允许玩家使用卷轴'
+      Get-M.buyEXPforFree: true
+      Get-M.EXPTrade: true
+      Get-M.toString: true
+      Get-M.clone: true
+      Get-M.ExpBox: true
+      Get-M.ReName: true
+      Get-M.checkLottery: true
+  Get-M.buyEXPforFree:
+    description: '允许玩家不用付钱地获取经验'
+    default: op
+  Get-M.EXPTrade:
+    description: '允许玩家将游戏币和经验互相转换'
     default: true
+  Get-M.toString:
+    description: '允许玩家获取物品详细信息'
+    default: op
+  Get-M.clone:
+    description: '允许管理员复制手中的物品'
+    default: op
+  Get-M.ExpBox:
+    description: '允许玩家使用经验盒功能'
+    default: true
+  Get-M.ReName:
+    description: '允许玩家给手中物品改名'
+    default: true
+  Get-M.checkLottery:
+    description: '允许玩家查看彩票记录'
+    default: op
 
 commands:
+  获取基础工具包:
+    description: '获取基础工具包'
+    usage: '/获取基础工具包'
+
+  获取基础物资:
+    description: '获取基础物资'
+    usage: '/获取基础物资'
+    aliases: '打开基础物资包'
+
+  获取经验:
+    description: '获取经验'
+    usage: '/获取经验 <数量>（若使用/获取等级，则是增加<数量>的经验等级。'
+    aliases:
+      - '获取等级'
+      - 'getEXP'
+      - 'getLevels'
+    permission: Get-M.buyEXPforFree
+
+  退出游戏:
+    description: '退出游戏(下线)'
+    usage: '§e§l用法“/退出游戏”或“/下线”或“/quit”或“/logout”'
+    aliases:
+      - '下线'
+      - 'quit'
+      - 'logout'
+      - 'Disconnect'
+
+  获取物品数据:
+    description: '通过本指令获取物品的所有数据信息'
+    usage: '§c「ToString」：请手中拿着物品，§e输入指令 §b/toString §e或 §b/getString §e（不区分大小写） 或 §b/获取物品数据'
+    aliases:
+      - 'tostring'
+      - 'getstring'
+    permission: Get-M.toString
+
+  穿戴：:
+    description: '把手中的物品穿到相应部位，用作对应部位的装备'
+    usage: '§e§l手中拿着东西然后输入指令：§c§l/穿戴：<对应的部位名称(头盔/帽子/胸甲/衣服/护腿/裤子/靴子/鞋子)>()没有空格'
+    aliases:
+      - '穿戴：头盔'
+      - '穿戴：帽子'
+      - '穿戴：衣服'
+      - '穿戴：胸甲'
+      - '穿戴：裤子'
+      - '穿戴：护腿'
+      - '穿戴：鞋子'
+      - '穿戴：靴子'
+
+  设置无法破坏属性:
+    description: "§c§l花费20k经验值，§e§l设置手中的物品为无法破坏（即无限耐久）\n§4§l注意：需要花费20k经验值！"
+    usage: '§e§l手中拿着东西然后输入指令： §c§l/设置无法破坏属性'
+    aliases:
+      - 'setUnBreakable'
+      - 'setunbreakable'
+      - 'SETUNBREAKABLE'
+      - 'fixunbreakable'
+
+  垃圾箱:
+    description: '提供一个垃圾箱供玩家处理垃圾'
+    usage: '/垃圾箱 或 /Trash 或 /Rubbish'
+    aliases:
+      - '垃圾桶'
+      - 'trash'
+      - 'Trash'
+      - 'Rubbish'
+      - 'rubbish'
+      - 'lag'
+
+  恢复饱食度:
+    description: '§e§l回复玩家的饥饿值'
+    usage: '§e§l/(回复/恢复)(饥饿值/饱食度)'
+    aliases:
+      - 'hunger'
+      - '恢复饥饿值'
+      - '回复饥饿值'
+      - '回复饱食度'
+
+  饥饿值:
+    description: '§e§l获取玩家的饥饿值'
+    usage: '§e§l/(饥饿值／获取饥饿值／Foodlevel(s)／getFoodlevel(s)／)'
+    aliases:
+      - '获取饥饿值'
+      - 'foodlevel'
+      - 'foodlevels'
+      - 'getfoodlevel'
+      - 'getfoodlevels'
+
+  经验交易:
+    description: '买卖经验，通过此功能实现游戏币和经验转换。'
+    usage: '/经验交易 <买/卖> <数量>'
+    aliases:
+      - 'ExpTrade'
+      - 'exptrade'
+      - 'tradeexp'
+      - 'xptrade'
+    permission: Get-M.EXPTrade
+
+  复制:
+    description: '复制手中的物品'
+    usage: '/复制 [玩家名(可不填)] <数量/指定物品> '
+    aliases:
+      - '克隆'
+      - 'copy'
+    permission: Get-M.clone
+
+  经验盒:
+    description: '使用经验盒子'
+    usage: '/经验盒 <存/取> <数值>'
+    aliases:
+      - '经验盒子'
+      - 'expbox'
+    permission: Get-M.ExpBox
+
+  重命名:
+    description: '重命名手中的物品'
+    usage: '/(重命名/改名/rename) <物品名称>'
+    permission: Get-M.ReName
+    aliases:
+      - '改名'
+      - 'rename'
+
+  彩票:
+    description: '购买彩票'
+    usage: '/彩票 [选号，十个数字(不想选的可以输入R或不填写)]，\n或者 /彩票开奖 进行开奖兑奖，又或者 /查询彩票记录 [彩票期数/小于99的数N表示最近N期] '
+    aliases:
+      - '买彩票'
+      - 'cp'
+      - 'lottery'
+      - 'lt'
+      - 'lotterytickets'
+      - '彩票开奖'
+      - '开奖'
+      - 'kj'
+      - '彩票记录查询'
+      - '查询彩票记录'
+      - '查询彩票'
+      - '彩票查询'
+      - '开奖记录'
+      - '查询开奖记录'
+      - '开奖记录查询'
+      - '查询开奖结果'
+      - '查询开奖历史'
+
+
+
