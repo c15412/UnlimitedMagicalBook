@@ -22,7 +22,7 @@ import static org.bukkit.Bukkit.getServer;
 
 public class 获取 {
 
-    public static final Plugin 插件 = getServer().getPluginManager().getPlugin("Get-M");
+    public static final Plugin 插件 = getServer().getPluginManager().getPlugin("UnlimitedMagicalBook");
     public static final ConsoleCommandSender 控制台 = getServer().getConsoleSender();
 
     public static int 数值(String 字符串) {
