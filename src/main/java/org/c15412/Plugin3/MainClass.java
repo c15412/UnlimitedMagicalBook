@@ -10,7 +10,7 @@ public class MainClass extends JavaPlugin {
     @Override
     public void onLoad() {
         super.onLoad();
-        控制台信息("§e「无尽卷轴」§b插件已经开始加载。");
+        控制台信息("§b插件已经开始加载。");
     }
 
     @Override
@@ -27,7 +27,7 @@ public class MainClass extends JavaPlugin {
     }
 
     private void 控制台信息(String 信息) {
-        获取.控制台.sendMessage("[Get-M] " + 信息);
+        获取.控制台.sendMessage("§e「无尽卷轴」" + 信息);
     }
 
     private void 添加合成表(Recipe 合成表) {
