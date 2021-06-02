@@ -18,12 +18,14 @@ public class MainClass extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new 无尽卷轴(),this);
         getServer().getPluginManager().registerEvents(new 防改名(), this);
         添加合成表(合成无尽卷轴());
+        控制台信息("§b插件已成功加载。");
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
         移除合成表(合成无尽卷轴());
+        控制台信息("§b插件已成功卸载。");
     }
 
     private void 控制台信息(String 信息) {
