@@ -139,32 +139,43 @@ public class 无尽卷轴 implements Listener {
                                                             if (获取.物品名称(手中物品).equals("§b§l无尽卷轴") || 获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
 
                                                                 if (注释.get(1).equals("§a§l") || 注释.get(3).equals("§a§l0")) {
-                                                                    注释.set(1, "§a§l" + 方块类型.name());
+                                                                    注释.set(1, "§a§l" + 方块类型.name().replace("_VINES_PLANT", "_VINES"));
                                                                     物品.设置注释(手中物品, 注释);
                                                                 } else {
                                                                     Location 位置 = 点击的方块.getLocation().add(右键卷轴.getBlockFace().getDirection()).add(0.5, 0.5, 0.5);
+                                                                    if (位置.getBlockY() > 255) return;
                                                                     Block 方块 = 位置.getBlock();
                                                                     Material 物品种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
                                                                     int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
                                                                     数量 = 数量 - 1;
                                                                     注释.set(3, "§a§l" + 数量);
-                                                                    new BukkitRunnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            Collection<Entity> 附近的实体 = 方块.getWorld().getNearbyEntities(位置, 0.5, 0.5, 0.5);
+                                                                    final boolean[] flag = {false};
+                                                                    if (!物品种类.isSolid()) {
+                                                                        flag[0] = true;
+                                                                    }
+                                                                    String 方块名 = 方块.getType().name();
+                                                                    if (方块.getType().isAir() || 方块.isLiquid() || 方块.isEmpty()
+                                                                            || 方块.getType().equals(Material.FIRE)
+                                                                            || (方块名.contains("GRASS") && !方块名.contains("BLOCK"))
+                                                                            || 方块名.contains("FERN") || 方块名.contains("_SPROUTS")
+                                                                            || 方块名.contains("_ROOTS")) {
+                                                                        new BukkitRunnable() {
+                                                                            @Override
+                                                                            public void run() {
+                                                                                Collection<Entity> 附近的实体 = 方块.getWorld().getNearbyEntities(位置, 0.5, 0.5, 0.5);
+                                                                                附近的实体.removeIf(实体 -> !实体.getType().isAlive());
 
-                                                                            附近的实体.removeIf(实体 -> !实体.getType().isAlive());
-                                                                            if (附近的实体.size() < 1 || !物品种类.isSolid())
-                                                                                if (方块.getType().isAir() || 方块.isLiquid() || 方块.isEmpty()
-                                                                                        || 方块.getType().equals(Material.FIRE)
-                                                                                        || (方块.getType().name().toLowerCase().contains("grass") && !方块.getType().name().toLowerCase().contains("block"))
-                                                                                        || 方块.getType().name().toLowerCase().contains("fern")) {
+                                                                                if (附近的实体.size() < 1) {
+                                                                                    flag[0] = true;
+                                                                                }
+                                                                                if (flag[0]) {
                                                                                     方块.setType(物品种类);
                                                                                     设置注释(手中物品, 注释);
-                                                                                    this.cancel();
                                                                                 }
-                                                                        }
-                                                                    }.runTask(获取.插件);
+                                                                                this.cancel();
+                                                                            }
+                                                                        }.runTask(获取.插件);
+                                                                    }
                                                                 }
 
                                                             }
