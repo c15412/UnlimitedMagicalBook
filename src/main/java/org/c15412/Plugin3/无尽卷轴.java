@@ -119,6 +119,53 @@ public class 无尽卷轴 implements Listener {
                 获取.终止进程(this.getTaskId());
             }
 
+            void 使用(ItemStack 手中物品) {
+                List<String> 注释 = 获取.注释(手中物品);
+                Block 点击的方块 = 右键卷轴.getClickedBlock();
+                Material 物品类型 = 点击的方块.getType();
+                if (注释.get(1).equals("§a§l") || 注释.get(3).equals("§a§l0")) {
+                    注释.set(1, "§a§l" + 物品种类(物品类型.name()));
+                    物品.设置注释(手中物品, 注释);
+                } else {
+                    Location 位置 = 点击的方块.getLocation().add(右键卷轴.getBlockFace().getDirection()).add(0.5, 0.5, 0.5);
+                    if (位置.getBlockY() > 255) return;
+                    Block 方块 = 位置.getBlock();
+                    String 方块种类名 = 材料种类转换为方块种类(注释.get(1).replace("§a§l", ""));
+                    Material 方块种类 = Material.getMaterial(方块种类名);
+                    if (!方块种类.isBlock()) return;
+                    int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
+                    数量 = 数量 - 1;
+                    注释.set(3, "§a§l" + 数量);
+                    final boolean[] flag = {false};
+                    if (!方块种类.isSolid()) {
+                        flag[0] = true;
+                    }
+                    String 方块名 = 方块.getType().name();
+                    if (方块.getType().isAir() || 方块.isLiquid() || 方块.isEmpty()
+                            || 方块.getType().equals(Material.FIRE)
+                            || (方块名.contains("GRASS") && !方块名.contains("BLOCK"))
+                            || 方块名.contains("FERN") || 方块名.contains("_SPROUTS")
+                            || 方块名.contains("_ROOTS")) {
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                Collection<Entity> 附近的实体 = 方块.getWorld().getNearbyEntities(位置, 0.5, 0.5, 0.5);
+                                附近的实体.removeIf(实体 -> !实体.getType().isAlive());
+
+                                if (附近的实体.size() < 1) {
+                                    flag[0] = true;
+                                }
+                                if (flag[0]) {
+                                    方块.setType(方块种类);
+                                    设置注释(手中物品, 注释);
+                                }
+                                this.cancel();
+                            }
+                        }.runTask(获取.插件);
+                    }
+                }
+            }
+
             void 运行() {
                 if (右键卷轴.getAction().name().toUpperCase().contains("RIGHT_CLICK"))
                     if (右键卷轴.getPlayer().hasPermission("UMB.USE"))
@@ -131,94 +178,55 @@ public class 无尽卷轴 implements Listener {
                                             if (手中物品.getItemMeta().hasLore()) {
                                                 List<String> 注释 = 获取.注释(手中物品);
                                                 if (注释.size() == 4)
-                                                    if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-                                                        if (!右键卷轴.getClickedBlock().getType().isInteractable()) {
+                                                    if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+                                                        if (获取.物品名称(手中物品).equals("§b§l无尽卷轴") || 获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
                                                             Block 点击的方块 = 右键卷轴.getClickedBlock();
-                                                            Material 方块类型 = 点击的方块.getType();
-                                                            if (方块类型.isBlock())
-                                                                if (获取.物品名称(手中物品).equals("§b§l无尽卷轴") || 获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
-
-                                                                    if (注释.get(1).equals("§a§l") || 注释.get(3).equals("§a§l0")) {
-                                                                        注释.set(1, "§a§l" + 方块类型.name().replace("_VINES_PLANT", "_VINES"));
-                                                                        物品.设置注释(手中物品, 注释);
+                                                            Material 物品类型 = 点击的方块.getType();
+                                                            if (!右键卷轴.getClickedBlock().getType().isInteractable()) {
+                                                                if (物品类型.isBlock()) {
+                                                                    使用(手中物品);
+                                                                }
+                                                            } else if (右键卷轴.getPlayer().isSneaking()) {
+                                                                使用(手中物品);
+                                                            }
+                                                        } else if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+                                                            Player 玩家 = 右键卷轴.getPlayer();
+                                                            if (玩家.isSneaking()) {
+                                                                if (获取.物品名称(手中物品).equals("§b§l无尽卷轴")) {
+                                                                    if (!注释.get(1).equals("§a§l"))
+                                                                        设置名称(手中物品, "§7§l无尽卷轴（已关闭收纳功能）");
+                                                                } else if (获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）"))
+                                                                    设置名称(手中物品, "§b§l无尽卷轴");
+                                                            } else if (获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
+                                                                if (!注释.get(1).equals("§a§l") && !注释.get(3).equals("§a§l0")) {
+                                                                    Material 物品种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
+                                                                    int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
+                                                                    int 最大堆叠数 = 物品种类.getMaxStackSize();
+                                                                    if (数量 < 最大堆叠数) {
+                                                                        int final数量 = 数量;
+                                                                        new BukkitRunnable() {
+                                                                            @Override
+                                                                            public void run() {
+                                                                                玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, final数量));
+                                                                                this.cancel();
+                                                                            }
+                                                                        }.runTask(获取.插件);
+                                                                        数量 = 0;
                                                                     } else {
-                                                                        Location 位置 = 点击的方块.getLocation().add(右键卷轴.getBlockFace().getDirection()).add(0.5, 0.5, 0.5);
-                                                                        if (位置.getBlockY() > 255) return;
-                                                                        Block 方块 = 位置.getBlock();
-                                                                        Material 物品种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
-                                                                        if (!物品种类.isBlock()) return;
-                                                                        int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
-                                                                        数量 = 数量 - 1;
-                                                                        注释.set(3, "§a§l" + 数量);
-                                                                        final boolean[] flag = {false};
-                                                                        if (!物品种类.isSolid()) {
-                                                                            flag[0] = true;
-                                                                        }
-                                                                        String 方块名 = 方块.getType().name();
-                                                                        if (方块.getType().isAir() || 方块.isLiquid() || 方块.isEmpty()
-                                                                                || 方块.getType().equals(Material.FIRE)
-                                                                                || (方块名.contains("GRASS") && !方块名.contains("BLOCK"))
-                                                                                || 方块名.contains("FERN") || 方块名.contains("_SPROUTS")
-                                                                                || 方块名.contains("_ROOTS")) {
-                                                                            new BukkitRunnable() {
-                                                                                @Override
-                                                                                public void run() {
-                                                                                    Collection<Entity> 附近的实体 = 方块.getWorld().getNearbyEntities(位置, 0.5, 0.5, 0.5);
-                                                                                    附近的实体.removeIf(实体 -> !实体.getType().isAlive());
-
-                                                                                    if (附近的实体.size() < 1) {
-                                                                                        flag[0] = true;
-                                                                                    }
-                                                                                    if (flag[0]) {
-                                                                                        方块.setType(物品种类);
-                                                                                        设置注释(手中物品, 注释);
-                                                                                    }
-                                                                                    this.cancel();
-                                                                                }
-                                                                            }.runTask(获取.插件);
-                                                                        }
+                                                                        new BukkitRunnable() {
+                                                                            @Override
+                                                                            public void run() {
+                                                                                玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, 最大堆叠数));
+                                                                                this.cancel();
+                                                                            }
+                                                                        }.runTask(获取.插件);
+                                                                        数量 = 数量 - 最大堆叠数;
                                                                     }
-
+                                                                    注释.set(3, "§a§l" + 数量);
+                                                                    设置注释(手中物品, 注释);
                                                                 }
-                                                        }
-                                                    } else if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-                                                        Player 玩家 = 右键卷轴.getPlayer();
-                                                        if (玩家.isSneaking()) {
-                                                            if (获取.物品名称(手中物品).equals("§b§l无尽卷轴")) {
-                                                                if (!注释.get(1).equals("§a§l"))
-                                                                    设置名称(手中物品, "§7§l无尽卷轴（已关闭收纳功能）");
-                                                            } else if (获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）"))
-                                                                设置名称(手中物品, "§b§l无尽卷轴");
-                                                        } else if (获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
-                                                            if (!注释.get(1).equals("§a§l") && !注释.get(3).equals("§a§l0")) {
-                                                                Material 物品种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
-                                                                int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
-                                                                int 最大堆叠数 = 物品种类.getMaxStackSize();
-                                                                if (数量 < 最大堆叠数) {
-                                                                    int final数量 = 数量;
-                                                                    new BukkitRunnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, final数量));
-                                                                            this.cancel();
-                                                                        }
-                                                                    }.runTask(获取.插件);
-                                                                    数量 = 0;
-                                                                } else {
-                                                                    new BukkitRunnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, 最大堆叠数));
-                                                                            this.cancel();
-                                                                        }
-                                                                    }.runTask(获取.插件);
-                                                                    数量 = 数量 - 最大堆叠数;
-                                                                }
-                                                                注释.set(3, "§a§l" + 数量);
-                                                                设置注释(手中物品, 注释);
                                                             }
                                                         }
-                                                    }
                                             }
                             }
             }
@@ -272,5 +280,47 @@ public class 无尽卷轴 implements Listener {
         ItemMeta 数据 = 物品.getItemMeta().clone();
         数据.setDisplayName(名称);
         物品.setItemMeta(数据);
+    }
+
+    String 物品种类(String 方块种类) {
+        switch (方块种类) {
+            case "WEEPING_VINES_PLANT":
+                return "WEEPING_VINES";
+            case "TWISTING_VINES_PLANT":
+                return "TWISTING_VINES";
+            case "MELON_STEM":
+                return "MELON_SEEDS";
+            case "PUMPKIN_STEM":
+                return "PUMPKIN_SEEDS";
+            case "CARROTS":
+                return "CARROT";
+            case "POTATOES":
+                return "POTATO";
+            case "WHEAT":
+                return "WHEAT_SEEDS";
+            case "BEETROOTS":
+                return "BEETROOT_SEEDS";
+            default:
+                return 方块种类;
+        }
+    }
+
+    String 材料种类转换为方块种类(String 物品种类) {
+        switch (物品种类) {
+            case "CARROT":
+                return "CARROTS";
+            case "POTATO":
+                return "POTATOES";
+            case "WHEAT_SEEDS":
+                return "WHEAT";
+            case "BEETROOT_SEEDS":
+                return "BEETROOTS";
+            case "MELON_SEEDS":
+                return "MELON_STEM";
+            case "PUMPKIN_SEEDS":
+                return "PUMPKIN_STEM";
+            default:
+                return 物品种类;
+        }
     }
 }
