@@ -1,7 +1,7 @@
 name: UnlimitedMagicalBook
 author: '１５４１２'
 main: org.c15412.Plugin3.MainClass
-version: 'test.000.0214'
+version: 'test.000.0216'
 api-version: '1.16'
 
 permissions:
