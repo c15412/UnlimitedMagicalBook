@@ -6,7 +6,7 @@
 
     <groupId>org.c15412.Plugin3</groupId>
     <artifactId>UnlimitedMagicalBook</artifactId>
-    <version>0.000.217-快照版</version>
+    <version>0.000.218-快照版</version>
 
     <build>
         <plugins>

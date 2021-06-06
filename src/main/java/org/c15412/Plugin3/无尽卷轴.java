@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.c15412.Plugin3.扩展类.物品;
@@ -154,26 +155,16 @@ public class 无尽卷轴 implements Listener {
                                                                 Material 物品种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
                                                                 int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
                                                                 int 最大堆叠数 = 物品种类.getMaxStackSize();
-                                                                if (数量 < 最大堆叠数) {
-                                                                    int final数量 = 数量;
-                                                                    new BukkitRunnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, final数量));
-                                                                            this.cancel();
-                                                                        }
-                                                                    }.runTask(获取.插件);
-                                                                    数量 = 0;
-                                                                } else {
-                                                                    new BukkitRunnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, 最大堆叠数));
-                                                                            this.cancel();
-                                                                        }
-                                                                    }.runTask(获取.插件);
-                                                                    数量 = 数量 - 最大堆叠数;
-                                                                }
+                                                                int i = Integer.min(最大堆叠数, 数量);
+                                                                new BukkitRunnable() {
+                                                                    @Override
+                                                                    public void run() {
+                                                                        玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, i));
+                                                                        this.cancel();
+                                                                    }
+                                                                }.runTask(获取.插件);
+                                                                数量 -= i;
+
                                                                 注释.set(3, "§a§l" + 数量);
                                                                 设置注释(手中物品, 注释);
                                                             }
@@ -199,27 +190,60 @@ public class 无尽卷轴 implements Listener {
                     int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
                     数量 = 数量 - 1;
                     注释.set(3, "§a§l" + 数量);
-                    final boolean[] flag = {false};
+                    boolean[] flag = {false};
                     if (!方块种类.isSolid()) {
-                        flag[0] = true;
+                        Block 底部方块 = 位置.add(0, -1, 0).getBlock();
+                        //String 类型 = 底部方块.getType().name();
+                        Material 底部方块类型 = 底部方块.getType();
+                        if (!底部方块类型.isSolid()) {
+                            switch (底部方块类型) {
+                                case WEEPING_VINES:
+                                case WEEPING_VINES_PLANT: {
+                                    方块种类 = Material.getMaterial("WEEPING_VINES_PLANT");
+                                    flag[0] = true;
+                                    break;
+                                }
+                                case SUGAR_CANE:
+                                case KELP_PLANT:
+                                case KELP:
+                                case VINE:
+                                case TWISTING_VINES:
+                                case TWISTING_VINES_PLANT:
+                                    flag[0] = 方块种类 == 底部方块类型;
+                                default: {
+                                    if (位置.add(0, 1, 0).getBlock().getType().isBlock()) {
+                                        if (方块种类.equals(WEEPING_VINES)) flag[0] = true;
+                                    } else break;
+                                }
+                                if (!flag[0]) return;
+                            }/*
+                            if (类型.equals("SUGAR_CANE") || 类型.contains("VINE")||类型.contains("KELP")) {
+                                if (类型.contains("WEEPING_VINES"))方块种类=Material.getMaterial("WEEPING_VINES_PLANT");
+                                flag[0] = true;
+                            }
+                            else if (右键卷轴.getBlockFace().getModY()==-1) {
+                                类型=点击的方块.getType().name();
+                                if (类型.contains("VINE")||类型.contains("KELP"))flag[0]=true;
+                            }
+                            else return;*/
+                        }
+
                     }
                     String 方块名 = 方块.getType().name();
                     if (方块.getType().isAir() || 方块.isLiquid() || 方块.isEmpty()
-                            || 方块.getType().equals(Material.FIRE)
+                            || 方块.getType().equals(FIRE) || 方块.getType().equals(VINE)
                             || (方块名.contains("GRASS") && !方块名.contains("BLOCK"))
                             || 方块名.contains("FERN") || 方块名.contains("_SPROUTS")
                             || 方块名.contains("_ROOTS")) {
+                        Material final方块种类 = 方块种类;
                         new BukkitRunnable() {
                             @Override
                             public void run() {
                                 Collection<Entity> 附近的实体 = 方块.getWorld().getNearbyEntities(位置, 0.5, 0.5, 0.5);
                                 附近的实体.removeIf(实体 -> !实体.getType().isAlive());
-
-                                if (附近的实体.size() < 1) {
-                                    flag[0] = true;
-                                }
+                                if (附近的实体.size() < 1) flag[0] = true;
                                 if (flag[0]) {
-                                    方块.setType(方块种类);
+                                    方块.setType(final方块种类, true);
                                     设置注释(手中物品, 注释);
                                 }
                                 this.cancel();
@@ -268,19 +292,21 @@ public class 无尽卷轴 implements Listener {
         }.runTaskAsynchronously(获取.插件);
     }
 
-    void 设置注释(ItemStack 物品, List<String> 注释) {
+    private void 设置注释(ItemStack 物品, List<String> 注释) {
         ItemMeta 数据 = 物品.getItemMeta().clone();
         数据.setLore(注释);
+        ((Damageable) 数据).setDamage(8888);
         物品.setItemMeta(数据);
     }
 
-    void 设置名称(ItemStack 物品, String 名称) {
+    private void 设置名称(ItemStack 物品, String 名称) {
         ItemMeta 数据 = 物品.getItemMeta().clone();
         数据.setDisplayName(名称);
+        ((Damageable) 数据).setDamage(8888);
         物品.setItemMeta(数据);
     }
 
-    Material 物品种类(Material 方块种类) {
+    private Material 物品种类(Material 方块种类) {
         switch (方块种类) {
             case WEEPING_VINES_PLANT:
                 return WEEPING_VINES;
@@ -302,12 +328,14 @@ public class 无尽卷轴 implements Listener {
                 return BEETROOT_SEEDS;
             case SWEET_BERRY_BUSH:
                 return SWEET_BERRIES;
+            case KELP_PLANT:
+                return KELP;
             default:
                 return 方块种类;
         }
     }
 
-    Material 材料种类转换为方块种类(Material 物品种类) {
+    private Material 材料种类转换为方块种类(Material 物品种类) {
         switch (物品种类) {
             case CARROT:
                 return CARROTS;
