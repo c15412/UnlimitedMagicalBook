@@ -62,12 +62,16 @@ public class 无尽卷轴 implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
+                运行();
+                获取.终止进程(this.getTaskId());
+            }
+
+            void 运行() {
                 if (拾取物品.getEntity() instanceof Player) {
                     Player 玩家 = (Player) 拾取物品.getEntity();
                     if (玩家.hasPermission("UMB.USE"))
-                        卷轴收纳物品(玩家.getInventory()).runTaskAsynchronously(获取.插件);
+                        卷轴收纳物品(玩家.getInventory()).run();
                 }
-                获取.终止进程(this.getTaskId());
             }
         }.runTaskAsynchronously(获取.插件);
     }
