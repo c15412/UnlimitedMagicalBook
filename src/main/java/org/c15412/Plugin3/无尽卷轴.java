@@ -171,11 +171,15 @@ public class 无尽卷轴 implements Listener {
                         Material final方块种类 = 方块种类;
                         if (方块种类.name().contains("BOAT")) {
                             注释.set(3, "§a§l" + (获取.数值(注释.get(3)) - 1));
+                            String Species = final方块种类.name();
+                            if (Species.equals("OAK_BOAT")) Species = "GENERIC";
+                            else Species = Species.replace("_BOAT", "");
+                            String finalSpecies = Species;
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
                                     Boat 船 = (Boat) 位置.getWorld().spawnEntity(位置, EntityType.BOAT);
-                                    船.setWoodType(TreeSpecies.valueOf(final方块种类.name().replace("_BOAT", "")));
+                                    船.setWoodType(TreeSpecies.valueOf(finalSpecies));
                                     设置注释(手中物品, 注释);
                                     this.cancel();
                                 }
