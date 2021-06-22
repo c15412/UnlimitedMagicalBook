@@ -2,6 +2,7 @@ package org.c15412.Plugin3;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.TreeSpecies;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -11,9 +12,7 @@ import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Fence;
 import org.bukkit.block.data.type.Hopper;
 import org.bukkit.block.data.type.Ladder;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -166,8 +165,35 @@ public class 无尽卷轴 implements Listener {
                     Block 底部方块 = 位置.getBlock();
                     位置.add(0, 1, 0);
                     Material 方块种类 = 材料种类转换为方块种类(Material.getMaterial(注释.get(1).replace("§a§l", "")));
+
                     if (方块种类.name().contains("SIGN")) return;
-                    else if (!方块种类.isBlock()) return;
+                    if (!方块种类.isBlock()) {
+                        Material final方块种类 = 方块种类;
+                        if (方块种类.name().contains("BOAT")) {
+                            注释.set(3, "§a§l" + (获取.数值(注释.get(3)) - 1));
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    Boat 船 = (Boat) 位置.getWorld().spawnEntity(位置, EntityType.BOAT);
+                                    船.setWoodType(TreeSpecies.valueOf(final方块种类.name().replace("_BOAT", "")));
+                                    设置注释(手中物品, 注释);
+                                    this.cancel();
+                                }
+                            }.runTask(获取.插件);
+                        }
+                        if (方块种类.name().contains("MINECART")) {
+                            注释.set(3, "§a§l" + (获取.数值(注释.get(3)) - 1));
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    位置.getWorld().spawnEntity(位置, EntityType.fromName(final方块种类.name()));
+                                    设置注释(手中物品, 注释);
+                                    this.cancel();
+                                }
+                            }.runTask(获取.插件);
+                        }
+                        return;
+                    }
                     int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
                     数量 = 数量 - 1;
                     注释.set(3, "§a§l" + 数量);
@@ -212,33 +238,41 @@ public class 无尽卷轴 implements Listener {
                         case VINE:
                         case LADDER: {
                             flag[0] = true;
+                            break;
                         }
                         case WEEPING_VINES: {
                             if (位置.add(0, 1, 0).getBlock().getType().isBlock()) {
                                 flag[0] = true;
+                                break;
                             }
                         }
                         case TORCH: {
                             if (右键卷轴.getBlockFace().getModY() == 0) 方块种类 = WALL_TORCH;
                             flag[0] = true;
+                            break;
                         }
                         case REDSTONE_TORCH: {
                             if (右键卷轴.getBlockFace().getModY() == 0) 方块种类 = REDSTONE_WALL_TORCH;
                             flag[0] = true;
+                            break;
                         }
                         default: {
                             if (方块种类.name().contains("BANNER")) return;
                             if (方块种类.isSolid()) {
                                 flag[0] = true;
+                                break;
                             } else {
                                 if (!底部方块类型.isSolid()) {
                                     switch (底部方块类型) {
-                                        case COBWEB:
+                                        case COBWEB: {
                                             flag[0] = true;
+                                            break;
+                                        }
                                         case WEEPING_VINES:
                                         case WEEPING_VINES_PLANT: {
                                             方块种类 = WEEPING_VINES_PLANT;
                                             flag[0] = true;
+                                            break;
                                         }
                                         case SUGAR_CANE:
                                         case KELP_PLANT:
@@ -247,23 +281,13 @@ public class 无尽卷轴 implements Listener {
                                         case TWISTING_VINES:
                                         case TWISTING_VINES_PLANT: {
                                             flag[0] = 方块种类 == 底部方块类型;
+                                            break;
                                         }
                                         default: {
                                         }
                                     }
                                     if (!flag[0]) return;
-                            /*
-                            if (类型.equals("SUGAR_CANE") || 类型.contains("VINE")||类型.contains("KELP")) {
-                                if (类型.contains("WEEPING_VINES"))方块种类=Material.getMaterial("WEEPING_VINES_PLANT");
-                                flag[0] = true;
-                            }
-                            else if (右键卷轴.getBlockFace().getModY()==-1) {
-                                类型=点击的方块.getType().name();
-                                if (类型.contains("VINE")||类型.contains("KELP"))flag[0]=true;
-                            }
-                            else return;*/
                                 }
-                                ;
                             }
                         }
                     }
@@ -378,6 +402,7 @@ public class 无尽卷轴 implements Listener {
     private void 设置注释(ItemStack 物品, List<String> 注释) {
         ItemMeta 数据 = 物品.getItemMeta().clone();
         数据.setLore(注释);
+        数据.setUnbreakable(true);
         ((Damageable) 数据).setDamage(8888);
         物品.setItemMeta(数据);
     }
@@ -385,6 +410,7 @@ public class 无尽卷轴 implements Listener {
     private void 设置名称(ItemStack 物品, String 名称) {
         ItemMeta 数据 = 物品.getItemMeta().clone();
         数据.setDisplayName(名称);
+        数据.setUnbreakable(true);
         ((Damageable) 数据).setDamage(8888);
         物品.setItemMeta(数据);
     }
