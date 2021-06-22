@@ -35,7 +35,6 @@ import org.c15412.Plugin3.扩展类.物品;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.bukkit.Material.*;
 
@@ -454,13 +453,10 @@ public class 无尽卷轴 implements Listener {
             public void run() {
                 if (背包.contains(ENCHANTED_BOOK)) {
 
-                    //final int[] 格子编号 = {0};
-                    List<Material> 物品种类 = new ArrayList<>();
                     List<Integer> 卷轴的序号 = new ArrayList<>();
                     if (背包.contains(Material.ENCHANTED_BOOK)) {
 
-                        IntStream.range(0, 背包.getSize()).forEach(i -> {
-                            //boolean flags = false;
+                        背包.all(ENCHANTED_BOOK).keySet().forEach(i -> {
                             ItemStack 格子物品 = 背包.getItem(i);
                             if (格子物品 != null)
                                 if (格子物品.getType().equals(ENCHANTED_BOOK))
@@ -469,14 +465,16 @@ public class 无尽卷轴 implements Listener {
                                             if (获取.物品名称(格子物品).equals("§b§l无尽卷轴")) {
                                                 if (格子物品.getItemMeta().hasLore()) {
                                                     List<String> 注释 = 获取.注释(格子物品);
-                                                    if (!注释.get(1).replace("§a§l", "").equals("")) {
-                                                        物品种类.add(getMaterial(注释.get(1).replace("§a§l", "")));
-                                                        卷轴的序号.add(i);
-                                                    }
+                                                    if (!注释.get(1).replace("§a§l", "").equals(""))
+                                                        if (getMaterial(注释.get(1).replace("§a§l", "")) != null) {
+                                                            if (背包.contains(getMaterial(注释.get(1).replace("§a§l", ""))))
+                                                                卷轴的序号.add(i);
+                                                        }
                                                 }
                                             }
                                     }
                         });
+
                         if (卷轴的序号.size() > 0)
                             卷轴的序号.forEach(序号 -> {
                                 ItemStack 卷轴 = 背包.getItem(序号);
@@ -484,14 +482,16 @@ public class 无尽卷轴 implements Listener {
                                 int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
                                 Material 材料种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
                                 final int[] 背包内总数量 = {0};
-                                for (int i = 0; i < 背包.getSize(); i++) {
+
+                                背包.all(材料种类).keySet().forEach(i -> {
                                     ItemStack 格子物品 = 背包.getItem(i);
                                     if (格子物品 != null)
                                         if (格子物品.equals(new ItemStack(材料种类, 格子物品.getAmount()))) {
                                             背包内总数量[0] = 背包内总数量[0] + 格子物品.getAmount();
                                             背包.clear(i);
                                         }
-                                }
+                                });
+
                                 数量 = 数量 + 背包内总数量[0];
                                 注释.set(3, "§a§l" + 数量);
                                 物品.设置注释(卷轴, 注释);
@@ -502,54 +502,5 @@ public class 无尽卷轴 implements Listener {
             }
         };
     }
-    /*public void 卷轴收纳物品(Inventory 背包) {
-        if (背包.contains(ENCHANTED_BOOK)) {
-
-            //final int[] 格子编号 = {0};
-            List<Material> 物品种类 = new ArrayList<>();
-            List<Integer> 卷轴的序号 = new ArrayList<>();
-            if (背包.contains(Material.ENCHANTED_BOOK)) {
-
-                IntStream.range(0, 背包.getSize()).forEach(i -> {
-                    //boolean flags = false;
-                    ItemStack 格子物品 = 背包.getItem(i);
-                    if (格子物品 != null)
-                        if (格子物品.getType().equals(ENCHANTED_BOOK))
-                            if (格子物品.hasItemMeta()) {
-                                if (获取.特殊值(格子物品) == 8888)
-                                    if (获取.物品名称(格子物品).equals("§b§l无尽卷轴")) {
-                                        if (格子物品.getItemMeta().hasLore()) {
-                                            List<String> 注释 = 获取.注释(格子物品);
-                                            if (!注释.get(1).replace("§a§l", "").equals("")) {
-                                                物品种类.add(getMaterial(注释.get(1).replace("§a§l", "")));
-                                                卷轴的序号.add(i);
-                                            }
-                                        }
-                                    }
-                            }
-                });
-                if (卷轴的序号.size() > 0)
-                    卷轴的序号.forEach(序号 -> {
-                        ItemStack 卷轴 = 背包.getItem(序号);
-                        List<String> 注释 = 获取.注释(卷轴);
-                        int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
-                        Material 材料种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
-                        final int[] 背包内总数量 = {0};
-                        for (int i = 0; i < 背包.getSize(); i++) {
-                            ItemStack 格子物品 = 背包.getItem(i);
-                            if (格子物品 != null)
-                                if (格子物品.equals(new ItemStack(材料种类, 格子物品.getAmount()))) {
-                                    背包内总数量[0] = 背包内总数量[0] + 格子物品.getAmount();
-                                    背包.clear(i);
-                                }
-                        }
-                        数量 = 数量 + 背包内总数量[0];
-                        注释.set(3, "§a§l" + 数量);
-                        物品.设置注释(卷轴, 注释);
-                    });
-            }
-        }
-    }
-*/
 
 }
