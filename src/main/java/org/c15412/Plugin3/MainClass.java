@@ -17,6 +17,7 @@ public class MainClass extends JavaPlugin {
     public void onEnable() {
         getServer().getPluginManager().registerEvents(new 无尽卷轴(),this);
         getServer().getPluginManager().registerEvents(new 防改名(), this);
+
         添加合成表(合成无尽卷轴());
         控制台信息("§b插件已成功加载。");
     }
@@ -29,7 +30,7 @@ public class MainClass extends JavaPlugin {
     }
 
     private void 控制台信息(String 信息) {
-        获取.控制台.sendMessage("§e「无尽卷轴」" + 信息);
+        获取.控制台.sendMessage("§e「无尽卷轴类」" + 信息);
     }
 
     private void 添加合成表(Recipe 合成表) {

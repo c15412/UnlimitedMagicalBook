@@ -29,22 +29,19 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.c15412.Plugin3.扩展类.物品;
+import org.c15412.Plugin3.扩展类.无尽卷轴类;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.bukkit.Material.*;
 
 public class 无尽卷轴 implements Listener {
 
-    public static ItemStack 无尽卷轴(int 数量) {
-        物品 无尽卷轴 = new 物品(Material.ENCHANTED_BOOK, 数量);
-        无尽卷轴.设置名称("§b§l无尽卷轴");
-        无尽卷轴.设置注释("§e§l当前存储物品为：", "§a§l", "§b§l物品数量：", "§a§l0");
-        无尽卷轴.设置特殊值(8888);
-        return 无尽卷轴;
+    public static 无尽卷轴类 无尽卷轴(int 数量) {
+        return new 无尽卷轴类();
     }
 
     public static ShapedRecipe 合成无尽卷轴() {
@@ -62,7 +59,7 @@ public class 无尽卷轴 implements Listener {
             public void run() {
                 if (拾取物品.getEntity() instanceof Player) {
                     Player 玩家 = (Player) 拾取物品.getEntity();
-                    if (玩家.hasPermission("UMB.USE"))
+                    if (玩家.hasPermission("Get-M.UMB-USE"))
                         卷轴收纳物品(玩家.getInventory()).runTaskAsynchronously(获取.插件);
                 }
                 获取.终止进程(this.getTaskId());
@@ -97,66 +94,65 @@ public class 无尽卷轴 implements Listener {
             }
 
             void 运行() {
-                if (右键卷轴.getAction().name().toUpperCase().contains("RIGHT_CLICK"))
-                    if (玩家.hasPermission("UMB.USE"))
+                if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_BLOCK) || 右键卷轴.getAction().equals(Action.RIGHT_CLICK_AIR))
+                    if (玩家.hasPermission("Get-M.UMB-USE"))
                         if (!右键卷轴.useItemInHand().equals(Event.Result.DENY))
                             if (右键卷轴.hasItem()) {
-                                ItemStack 手中物品 = 右键卷轴.getItem();
-                                if (手中物品.getType().equals(Material.ENCHANTED_BOOK))
-                                    if (手中物品.hasItemMeta())
-                                        if (获取.特殊值(手中物品) == 8888)
-                                            if (手中物品.getItemMeta().hasLore()) {
-                                                List<String> 注释 = 获取.注释(手中物品);
-                                                if (注释.size() == 4)
-                                                    if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-                                                        if (获取.物品名称(手中物品).equals("§b§l无尽卷轴") || 获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
-                                                            if (!右键卷轴.getClickedBlock().getType().isInteractable()) {
-                                                                if (右键卷轴.getClickedBlock().getType().isBlock()) {
-                                                                    使用判定(手中物品);
-                                                                }
-                                                            } else if (右键卷轴.getPlayer().isSneaking()) {
-                                                                使用判定(手中物品);
-                                                            }
-                                                        }
-                                                    } else if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-                                                        Player 玩家 = 右键卷轴.getPlayer();
-                                                        if (玩家.isSneaking()) {
-                                                            if (获取.物品名称(手中物品).equals("§b§l无尽卷轴")) {
-                                                                if (!注释.get(1).equals("§a§l"))
-                                                                    设置名称(手中物品, "§7§l无尽卷轴（已关闭收纳功能）");
-                                                            } else if (获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）"))
-                                                                设置名称(手中物品, "§b§l无尽卷轴");
-                                                        } else if (获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
-                                                            if (!注释.get(1).equals("§a§l") && !注释.get(3).equals("§a§l0")) {
-                                                                Material 物品种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
-                                                                int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
-                                                                int 最大堆叠数 = 物品种类.getMaxStackSize();
-                                                                int i = Integer.min(最大堆叠数, 数量);
-                                                                new BukkitRunnable() {
-                                                                    @Override
-                                                                    public void run() {
-                                                                        玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, i));
-                                                                        this.cancel();
-                                                                    }
-                                                                }.runTask(获取.插件);
-                                                                数量 -= i;
-
-                                                                注释.set(3, "§a§l" + 数量);
-                                                                设置注释(手中物品, 注释);
-                                                            }
-                                                        }
-                                                    }
+                                //ItemStack 手中卷轴 = 右键卷轴.getItem();
+                                if (无尽卷轴类.fromItemStack(右键卷轴.getItem()).isUMB()) {
+                                    无尽卷轴类 手中卷轴 = new 无尽卷轴类(右键卷轴.getItem());
+                                    if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+                                        if (!右键卷轴.getClickedBlock().getType().isInteractable()) {
+                                            if (右键卷轴.getClickedBlock().getType().isBlock()) {
+                                                使用判定(手中卷轴);
                                             }
+                                        } else if (右键卷轴.getPlayer().isSneaking()) {
+                                            使用判定(手中卷轴);
+                                        }
+                                    } else if (右键卷轴.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+                                        Player 玩家 = 右键卷轴.getPlayer();
+                                        if (玩家.isSneaking()) {
+                                            if (手中卷轴.isTakeEffect()) {
+                                                if (!手中卷轴.getStoredMaterial().equals(AIR)) {
+                                                    //设置名称(右键卷轴.getItem(), "§7§l无尽卷轴（已关闭收纳功能）");
+                                                    手中卷轴.关闭自动收纳();
+                                                }
+                                            } else if (!手中卷轴.isTakeEffect()) {
+                                                //设置名称(右键卷轴.getItem(), "§b§l无尽卷轴");
+                                                手中卷轴.开启自动收纳();
+                                            }
+                                        } else if (!手中卷轴.isTakeEffect()) {
+                                            if (!(手中卷轴.getStoredNumber() == 0 || 手中卷轴.getStoredMaterial().equals(AIR)
+                                                    || 手中卷轴.getStoredMaterial() == null)) {
+                                                Material 物品种类 = 手中卷轴.getStoredMaterial();
+                                                int 数量 = 手中卷轴.getStoredNumber();
+                                                int 最大堆叠数 = 物品种类.getMaxStackSize();
+                                                int i = Integer.min(最大堆叠数, 数量);
+                                                new BukkitRunnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        玩家.getWorld().dropItem(玩家.getLocation(), new ItemStack(物品种类, i));
+                                                        this.cancel();
+                                                    }
+                                                }.runTask(获取.插件);
+                                                数量 -= i;
+
+                                                手中卷轴.setStoredNumber(数量);
+                                                右键卷轴.getItem().setItemMeta(手中卷轴.getItemMeta());
+                                            }
+                                        }
+                                    }
+                                }
                             }
             }
 
-            void 使用判定(ItemStack 手中物品) {
-                List<String> 注释 = 获取.注释(手中物品);
+            void 使用判定(无尽卷轴类 手中卷轴) {
+                //List<String> 注释 = 获取.注释(手中卷轴);
                 Block 点击的方块 = 右键卷轴.getClickedBlock();
                 Material 物品类型 = 点击的方块.getType();
-                if (注释.get(1).equals("§a§l") || 注释.get(3).equals("§a§l0")) {
-                    注释.set(1, "§a§l" + 物品种类(物品类型).name());
-                    物品.设置注释(手中物品, 注释);
+                if (手中卷轴.getStoredMaterial() == AIR || 手中卷轴.getStoredNumber() == 0) {
+                    手中卷轴.设置储存材料(物品种类(物品类型));
+                    右键卷轴.getItem().setItemMeta(手中卷轴.getItemMeta());
                 } else {
                     Location 位置 = 点击的方块.getLocation().add(右键卷轴.getBlockFace().getDirection()).add(0.5, 0.5, 0.5);
                     if (位置.getBlockY() > 255) return;
@@ -164,13 +160,14 @@ public class 无尽卷轴 implements Listener {
                     位置.add(0, -1, 0);
                     Block 底部方块 = 位置.getBlock();
                     位置.add(0, 1, 0);
-                    Material 方块种类 = 材料种类转换为方块种类(Material.getMaterial(注释.get(1).replace("§a§l", "")));
+                    Material 方块种类 = 材料种类转换为方块种类(手中卷轴.getStoredMaterial());
+                    int[] 存储的数量 = {手中卷轴.getStoredNumber()};
 
                     if (方块种类.name().contains("SIGN")) return;
                     if (!方块种类.isBlock()) {
                         Material final方块种类 = 方块种类;
                         if (方块种类.name().contains("BOAT")) {
-                            注释.set(3, "§a§l" + (获取.数值(注释.get(3)) - 1));
+                            存储的数量[0]--;
                             String Species = final方块种类.name();
                             if (Species.equals("OAK_BOAT")) Species = "GENERIC";
                             else Species = Species.replace("_BOAT", "");
@@ -180,27 +177,27 @@ public class 无尽卷轴 implements Listener {
                                 public void run() {
                                     Boat 船 = (Boat) 位置.getWorld().spawnEntity(位置, EntityType.BOAT);
                                     船.setWoodType(TreeSpecies.valueOf(finalSpecies));
-                                    设置注释(手中物品, 注释);
+                                    手中卷轴.设置存储数量(存储的数量[0]);
+                                    //右键卷轴.getItem().setItemMeta(手中卷轴.getItemMeta());
                                     this.cancel();
                                 }
                             }.runTask(获取.插件);
                         }
                         if (方块种类.name().contains("MINECART")) {
-                            注释.set(3, "§a§l" + (获取.数值(注释.get(3)) - 1));
+                            存储的数量[0]--;
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
                                     位置.getWorld().spawnEntity(位置, EntityType.fromName(final方块种类.name()));
-                                    设置注释(手中物品, 注释);
+                                    手中卷轴.设置存储数量(存储的数量[0]);
+                                    //右键卷轴.getItem().setItemMeta(手中卷轴.getItemMeta());
                                     this.cancel();
                                 }
                             }.runTask(获取.插件);
                         }
                         return;
                     }
-                    int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
-                    数量 = 数量 - 1;
-                    注释.set(3, "§a§l" + 数量);
+                    存储的数量[0] = 存储的数量[0] - 1;
                     boolean[] flag = {false};
                     //if (!是否实体堆放(方块种类)) {
                     //String 类型 = 底部方块.getType().name();
@@ -301,12 +298,12 @@ public class 无尽卷轴 implements Listener {
                             || (方块名.contains("GRASS") && !方块名.contains("BLOCK"))
                             || 方块名.contains("FERN") || 方块名.contains("_SPROUTS")
                             || 方块名.contains("_ROOTS")) {
-                        更改方块(位置, 手中物品, 注释, 方块种类, flag);
+                        更改方块(位置, 手中卷轴, 存储的数量[0], 方块种类, flag);
                     }
                 }
             }
 
-            void 更改方块(Location 位置, ItemStack 手中物品, List<String> 注释, Material 方块种类, boolean flag[]) {
+            void 更改方块(Location 位置, 无尽卷轴类 手中卷轴, int 存储的数量, Material 方块种类, boolean flag[]) {
                 ;
                 Block 方块 = 位置.getBlock();
                 BlockData 方块数据 = 方块种类.createBlockData();
@@ -359,7 +356,8 @@ public class 无尽卷轴 implements Listener {
                             if (!(附近的实体.size() < 1)) return;
                         }
                         方块.setBlockData(final方块数据, true);
-                        设置注释(手中物品, 注释);
+                        手中卷轴.setStoredNumber(存储的数量);
+                        //右键卷轴.getItem().setItemMeta(手中卷轴.getItemMeta());
                     }
                 }.runTask(获取.插件);
             }
@@ -379,24 +377,17 @@ public class 无尽卷轴 implements Listener {
             void 运行() {
                 if (右键实体.getRightClicked() instanceof ItemFrame) {
 
-                    if (右键实体.getPlayer().hasPermission("UMB.USE"))
-                        if (右键实体.getPlayer().getEquipment().getItemInMainHand().getType().equals(ENCHANTED_BOOK)) {
-                            ItemStack 手中物品 = 右键实体.getPlayer().getEquipment().getItemInMainHand();
-                            if (手中物品.hasItemMeta())
-                                if (获取.特殊值(手中物品) == 8888)
-                                    if (手中物品.getItemMeta().hasLore())
-                                        if (获取.物品名称(手中物品).equals("§b§l无尽卷轴") || 获取.物品名称(手中物品).equals("§7§l无尽卷轴（已关闭收纳功能）")) {
-                                            List<String> 注释 = 获取.注释(手中物品);
-                                            if (注释.size() == 4) {
-                                                Material 物品类型 = ((ItemFrame) 右键实体.getRightClicked()).getItem().getType();
-                                                if (!物品类型.isAir()) {
-                                                    if (注释.get(1).equals("§a§l") || 注释.get(3).equals("§a§l0")) {
-                                                        注释.set(1, "§a§l" + 物品类型.name().replace("_VINES_PLANT", "_VINES"));
-                                                        设置注释(手中物品, 注释);
-                                                    }
-                                                }
-                                            }
-                                        }
+                    if (右键实体.getPlayer().hasPermission("Get-M.UMB-USE"))
+                        if (无尽卷轴类.fromItemStack(右键实体.getPlayer().getEquipment().getItemInMainHand()).isUMB()) {
+                            无尽卷轴类 手中卷轴 = new 无尽卷轴类(右键实体.getPlayer().getEquipment().getItemInMainHand());
+
+                            Material 物品类型 = ((ItemFrame) 右键实体.getRightClicked()).getItem().getType();
+                            if (!物品类型.isAir()) {
+                                if (手中卷轴.getStoredMaterial().equals(AIR) || 手中卷轴.getStoredMaterial() == null
+                                        || 手中卷轴.getStoredNumber() == 0) {
+                                    手中卷轴.setStoredMaterial(物品类型.name().replace("_VINES_PLANT", "_VINES"));
+                                }
+                            }
                         }
                 }
             }
@@ -481,52 +472,43 @@ public class 无尽卷轴 implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                if (背包.contains(ENCHANTED_BOOK)) {
+                List<Integer> 卷轴的序号 = new ArrayList<>();
+                if (背包.contains(Material.ENCHANTED_BOOK)) {
 
-                    List<Integer> 卷轴的序号 = new ArrayList<>();
-                    if (背包.contains(Material.ENCHANTED_BOOK)) {
+                    背包.all(ENCHANTED_BOOK).keySet().forEach(i -> {
+                        if (无尽卷轴类.fromItemStack(背包.getItem(i)).isUMB()) {
+                            无尽卷轴类 无尽卷轴 = new 无尽卷轴类(背包.getItem(i));
+                            if (!(无尽卷轴.getStoredMaterial().equals(AIR) || 无尽卷轴.getStoredMaterial() == null))
+                                if (无尽卷轴.isTakeEffect()) {
+                                    卷轴的序号.add(i);
+                                }
+                        }
+                    });
 
-                        背包.all(ENCHANTED_BOOK).keySet().forEach(i -> {
-                            ItemStack 格子物品 = 背包.getItem(i);
-                            if (格子物品 != null)
-                                if (格子物品.getType().equals(ENCHANTED_BOOK))
-                                    if (格子物品.hasItemMeta()) {
-                                        if (获取.特殊值(格子物品) == 8888)
-                                            if (获取.物品名称(格子物品).equals("§b§l无尽卷轴")) {
-                                                if (格子物品.getItemMeta().hasLore()) {
-                                                    List<String> 注释 = 获取.注释(格子物品);
-                                                    if (!注释.get(1).replace("§a§l", "").equals(""))
-                                                        if (getMaterial(注释.get(1).replace("§a§l", "")) != null) {
-                                                            if (背包.contains(getMaterial(注释.get(1).replace("§a§l", ""))))
-                                                                卷轴的序号.add(i);
-                                                        }
-                                                }
-                                            }
-                                    }
-                        });
+                    if (卷轴的序号.size() > 0)
+                        卷轴的序号.forEach(序号 -> {
+                            无尽卷轴类 卷轴 = new 无尽卷轴类(背包.getItem(序号));
+                            //List<String> 注释 = 卷轴.getItemMeta().getLore();
+                            int 数量 = 卷轴.getStoredNumber();
+                            Material 材料种类 = 卷轴.getStoredMaterial();
+                            final int[] 背包内总数量 = {0};
 
-                        if (卷轴的序号.size() > 0)
-                            卷轴的序号.forEach(序号 -> {
-                                ItemStack 卷轴 = 背包.getItem(序号);
-                                List<String> 注释 = 获取.注释(卷轴);
-                                int 数量 = 获取.数值(注释.get(3).replace("§a§l", ""));
-                                Material 材料种类 = Material.getMaterial(注释.get(1).replace("§a§l", ""));
-                                final int[] 背包内总数量 = {0};
-
-                                背包.all(材料种类).keySet().forEach(i -> {
-                                    ItemStack 格子物品 = 背包.getItem(i);
-                                    if (格子物品 != null)
+                            IntStream.range(0, 背包.getSize()).forEach(i -> {
+                                //if (!卷轴的序号.contains(i)) {
+                                ItemStack 格子物品 = 背包.getItem(i);
+                                if (格子物品 != null)
+                                    if (格子物品.getType().equals(材料种类))
                                         if (格子物品.equals(new ItemStack(材料种类, 格子物品.getAmount()))) {
                                             背包内总数量[0] = 背包内总数量[0] + 格子物品.getAmount();
                                             背包.clear(i);
                                         }
-                                });
-
-                                数量 = 数量 + 背包内总数量[0];
-                                注释.set(3, "§a§l" + 数量);
-                                物品.设置注释(卷轴, 注释);
+                                //}
                             });
-                    }
+
+                            数量 = 数量 + 背包内总数量[0];
+                            卷轴.setStoredNumber(数量);
+                            //背包.setItem(序号, 卷轴);
+                        });
                 }
                 获取.终止进程(this.getTaskId());
             }

@@ -73,7 +73,7 @@ public class 获取 {
     }
 
     public static void 控制台信息(String 信息) {
-        控制台.sendMessage("§e「无尽卷轴」 " + 信息);
+        控制台.sendMessage("§e「无尽卷轴类」 " + 信息);
     }
 
     public static void 终止进程(int 进程ID) {
